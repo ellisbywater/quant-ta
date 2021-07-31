@@ -19,6 +19,15 @@ def sma(dataframe, length: int = 50):
     return dataframe
 
 
+# rate of change
+def roc(close, n):
+    diff = df[close].diff(n)
+    nprev_vals = df[close].shift(n)
+    roc = (diff / nprev_vals) * 100
+    return roc
+
+
+# bollinger bands
 def bbands(dataframe, length: int, multiplier: float):
     m_avg = dataframe['close'].rolling(window=length).mean()
     m_std = dataframe['close'].rolling(window=length).std(ddof=0)
@@ -27,6 +36,7 @@ def bbands(dataframe, length: int, multiplier: float):
     return dataframe
 
 
+# keltner channels
 def keltner(dataframe, length: int, mulitplier: float):
     m_avg = dataframe['close'].rolling(window=length).mean()
     rng_ma = dataframe['tr'].rolling(window=length).mean()
@@ -35,6 +45,18 @@ def keltner(dataframe, length: int, mulitplier: float):
     return dataframe
 
 
+# know sure thing
+def kst(close, sma1, sma2, sma3, sma4, roc1, roc2, roc3, roc4, signal):
+    rcma1 = roc(close, roc1).rolling(sma1).mean()
+    rmca2 = roc(close, roc2).rolling(sma2).mean()
+    rmca3 = roc(close, roc3).rolling(sma3).mean()
+    rmca4 = roc(close, roc4).rolling(sma4).mean()
+    kst = (rcma1 * 1) + (rmca2 * 2) + (rmca3 * 3) + (rmca4 * 4)
+    signal = kst.rolling(signal).mean()
+    return kst, signal
+
+
+# lazybear squeeze
 def squeeze(dataframe, length, multiplier, length_kc: int, mult_kc: float):
     # moving average
     m_avg = dataframe['close'].rolling(window=length).mean()
@@ -82,5 +104,3 @@ def squeeze(dataframe, length, multiplier, length_kc: int, mult_kc: float):
     short_cond2 = df['value'][-1] < 0
     dataframe["sqz_short"] = short_cond1 and short_cond2
     return dataframe
-
-
