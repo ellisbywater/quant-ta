@@ -77,9 +77,9 @@ def kst(close, sma1, sma2, sma3, sma4, roc1, roc2, roc3, roc4, signal):
     return kst, signal
 
 
-def macd(df, fast, slow, smoothing):
-    exp_a = df.y.ewm(span=fast, adjust=False).mean()
-    exp_b = df.y.ewm(span=slow, adjust=False).mean()
+def macd(df, close, fast, slow, smoothing):
+    exp_a = df[close].ewm(span=fast, adjust=False).mean()
+    exp_b = df[close].ewm(span=slow, adjust=False).mean()
     macd_val = exp_a - exp_b
     signal_val = macd_val.ewm(span=smoothing, adjust=False).mean()
     df["MACD"] = macd_val
