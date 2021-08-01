@@ -19,6 +19,16 @@ def sma(dataframe, length: int = 50):
     return dataframe
 
 
+def ema(dataframe, length: int = 25, smoothing: int = 2):
+    dataframe[f"EMA_{length}"] = dataframe['close'].rolling(window=length).mean()
+    return dataframe
+
+
+def slope_column(dataframe, column, length):
+    dataframe[f"{column}_slope"] = dataframe[column].rolling(length).apply(lambda x: (x[-1] - x[0]) / 600)
+    return dataframe
+
+
 # rate of change
 def roc(close, n):
     diff = df[close].diff(n)
@@ -27,11 +37,22 @@ def roc(close, n):
     return roc
 
 
+# Triple MA
+def ma_cross(dataframe, sma_short: int, sma_mid: int, sma_long: int, ema_mid: int):
+    tmp_df = sma(dataframe=dataframe, length=sma_short)
+    tmp_df = sma(dataframe=dataframe, length=sma_mid)
+    tmp_df = sma(dataframe=tmp_df, length=sma_long)
+    df = ema(dataframe=tmp_df, length=ema_mid)
+    df['tri_ma_S'] = df[f"SMA_{sma_short}"] > df[f"SMA_{sma_mid}"] > df[f"SMA_{sma_long}"]
+    return df
+
+
 # bollinger bands
 def bbands(dataframe, length: int, multiplier: float):
     m_avg = dataframe['close'].rolling(window=length).mean()
     m_std = dataframe['close'].rolling(window=length).std(ddof=0)
     dataframe['upper_BB'] = m_avg + multiplier * m_std
+    dataframe['upper_BBs'] = m_avg + ((multiplier * m_std) / 2)
     dataframe['lower_BB'] = m_avg - multiplier * m_std
     return dataframe
 
@@ -54,6 +75,20 @@ def kst(close, sma1, sma2, sma3, sma4, roc1, roc2, roc3, roc4, signal):
     kst = (rcma1 * 1) + (rmca2 * 2) + (rmca3 * 3) + (rmca4 * 4)
     signal = kst.rolling(signal).mean()
     return kst, signal
+
+
+def macd(df, fast, slow, smoothing):
+    exp_a = df.y.ewm(span=fast, adjust=False).mean()
+    exp_b = df.y.ewm(span=slow, adjust=False).mean()
+    macd_val = exp_a - exp_b
+    signal_val = macd_val.ewm(span=smoothing, adjust=False).mean()
+    df["MACD"] = macd_val
+    df["MACD_S"] = signal_val
+    return df
+
+
+def schaff_trend():
+    pass
 
 
 # lazybear squeeze
